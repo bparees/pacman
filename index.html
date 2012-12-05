@@ -1,10 +1,10 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
 <script id='socketio'></script>
 <script>
-$('#socketio').attr('src', "http://"+document.domain+"/socket.io/socket.io.js")
+$('#socketio').attr('src', location.protocol+"//"+location.host+"/socket.io/socket.io.js")
 $(window).load(function(){
    //your code here
-   $('#game').attr('src',"http://"+document.domain+"/game.js");
+   $('#game').attr('src', location.protocol+"//"+location.host+"/game.js");
 });
 
 </script>
@@ -21,7 +21,6 @@ $(window).load(function(){
 		font-size: 10pt;
 		color: blue;
 	}
-	#full {
 	#message {
 		display: none;
 		position: absolute;

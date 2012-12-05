@@ -17,7 +17,7 @@ resilient. The app is playable on Red Hat's OpenShift PaaS at:
 Okay, now onto how can you get this app running on OpenShift.
 
 Steps to get pacman running on OpenShift
--------
+----------------------------------------
 
 Create an account at http://openshift.redhat.com/
 
@@ -43,7 +43,16 @@ Then push the repo to OpenShift
 
     git push
 
-That's it, you can now checkout your application at:
+That's it, you can now checkout your application on either of the
+experimental websocket enabled ports:
 
-    http://pacman-$yournamespace.rhcloud.com
+    http://pacman-$yournamespace.rhcloud.com:8000
+    OR
+    https://pacman-$yournamespace.rhcloud.com:8443
+
+
+Note: If you connect to the standard 80/443 ports
+          ( http[s]://pacman-$yournamespace.rhcloud.com ),
+      the application will fallback to using xhr-polling.
+
 

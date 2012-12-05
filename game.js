@@ -1,7 +1,7 @@
 (function() {
   var blinky, canvas, checkCollision, checkWin, clear, clyde, controllingPacman, ctx, direction, draw, ensureChannel, ghost, i, imagesLoaded, inky, lastmsgts, losePacman, maze, movePac, movePacInterval, mover, newGhost, newpac, pacLoc, pacLocInterval, pacman, pinky, randDir, randDirInterval, randomlyMovePacman, reset, resetPac, schedule, sendGhostCoords, showMessage, socket, unschedule;
 
-  socket = io.connect(document.domain);
+  socket = io.connect(location.protocol + '//' + location.host);
 
   socket.on('connect', function() {
     return console.log('socket connected');
@@ -102,9 +102,9 @@
     showMessage("Will randomly move pacman around!");
     controllingPacman = true;
     resetPac();
-    pacLocInterval = schedule(pacLocInterval, pacLoc, 20);
-    randDirInterval = schedule(randDirInterval, randDir, 500);
-    return movePacInterval = schedule(movePacInterval, movePac, 20);
+    pacLocInterval = schedule(pacLocInterval, pacLoc, 5);
+    randDirInterval = schedule(randDirInterval, randDir, 125);
+    return movePacInterval = schedule(movePacInterval, movePac, 5);
   };
 
   losePacman = function() {
@@ -366,10 +366,14 @@
   ensureChannel = function() {
     if ((new Date().getTime() - lastmsgts) < 3000) return 0;
     if (controllingPacman) return randomlyMovePacman();
-    return sendGhostCoordinates();
+    try {
+      return sendGhostCoordinates();
+    } catch(err) {
+    }
+
   };
 
-  setInterval(draw, 20);
+  setInterval(draw, 1);
 
   setInterval(ensureChannel, 5000);
 
