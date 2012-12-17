@@ -11,7 +11,7 @@ This app is a fork off the original pacman app (great job tjgillies!!) and
 has changes to use MongoDB in lieu of redis, use specific env variables
 for OpenShift + a few other improvements to make it a wee bit more
 resilient. The app is playable on Red Hat's OpenShift PaaS at:
-     http://pacman-ramr.rhcloud.com/
+     http://pacman-ramr.rhcloud.com:8000/
 
 
 Okay, now onto how can you get this app running on OpenShift.
