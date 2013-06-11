@@ -78,11 +78,13 @@ app.get('/game.js', function(req, res){
 
 
 //  Get the environment variables we need.
-var ipaddr  = process.env.OPENSHIFT_INTERNAL_IP;
-var port    = process.env.OPENSHIFT_INTERNAL_PORT || 8080;
+var ipaddr  = process.env.OPENSHIFT_NODEJS_IP ||
+              process.env.OPENSHIFT_INTERNAL_IP;
+var port    = process.env.OPENSHIFT_NODEJS_PORT   ||
+              process.env.OPENSHIFT_INTERNAL_PORT || 8080;
 
 if (typeof ipaddr === "undefined") {
-   console.warn('No OPENSHIFT_INTERNAL_IP environment variable');
+   console.warn('No OPENSHIFT_*_IP environment variable');
 }
 
 //  terminator === the termination handler.
