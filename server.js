@@ -3,13 +3,15 @@
 
 var express = require('express');
 var fs      = require('fs');
+var http    = require('http');
 
 //  Local cache for static content [fixed and loaded at startup]
 var zcache = { 'index.html': '' };
 zcache['index.html'] = fs.readFileSync('./index.html'); //  Cache index.html
 
-// Create "express" server.
-var app  = express.createServer();
+// Create "express" app and http server.
+var app  = express();
+var server = http.createServer(app);
 
 
 /*  =====================================================================  */
@@ -21,18 +23,13 @@ app.get('/health', function(req, res){
     res.send('1');
 });
 
-// Handler for GET /asciimo
-app.get('/asciimo', function(req, res){
-    var link="https://a248.e.akamai.net/assets.github.com/img/d84f00f173afcf3bc81b4fad855e39838b23d8ff/687474703a2f2f696d6775722e636f6d2f6b6d626a422e706e67";
-    res.send("<html><body><img src='" + link + "'></body></html>");
-});
-
 // Handler for GET /
 app.get('/', function(req, res){
-    res.send(zcache['index.html'], {'Content-Type': 'text/html'});
+    res.set('Content-Type', 'text/html');
+    res.send(zcache['index.html']);
 });
 
-function serveFile(req, res, file, hdrs) {
+function serveFile(req, res, file, file_type) {
     fs.readFile(file, function(err, data) {
         if (err) {
            throw err;
@@ -40,40 +37,41 @@ function serveFile(req, res, file, hdrs) {
 
         console.log('%s: serving static content %s', Date(Date.now() ),
                     file);
-        res.send(data, hdrs);
+        res.set('Content-Type', file_type);
+        res.send(data);
     });
 }
 
 app.get('/board.png', function(req, res){
-    serveFile(req, res, 'images/board.png', {'Content-Type': 'image/png'});
+    serveFile(req, res, 'images/board.png', 'image/png');
 });
 
 app.get('/blinky.gif', function(req, res){
-    serveFile(req, res, 'images/blinky.gif', {'Content-Type': 'image/gif'});
+    serveFile(req, res, 'images/blinky.gif', 'image/gif');
 });
 
 app.get('/inky.png', function(req, res){
-    serveFile(req, res, 'images/inky.png', {'Content-Type': 'image/png'});
+    serveFile(req, res, 'images/inky.png', 'image/png');
 });
 
 app.get('/pinky.png', function(req, res){
-    serveFile(req, res, 'images/pinky.png', {'Content-Type': 'image/png'});
+    serveFile(req, res, 'images/pinky.png', 'image/png');
 });
 
 app.get('/clyde.png', function(req, res){
-    serveFile(req, res, 'images/clyde.png', {'Content-Type': 'image/png'});
+    serveFile(req, res, 'images/clyde.png', 'image/png');
 });
 
 app.get('/pacman.png', function(req, res){
-    serveFile(req, res, 'images/pacman.png', {'Content-Type': 'image/png'});
+    serveFile(req, res, 'images/pacman.png', 'image/png');
 });
 
 app.get('/pacman.wav', function(req, res){
-    serveFile(req, res, 'media/pacman.wav', {'Content-Type': 'audio/wav'});
+    serveFile(req, res, 'media/pacman.wav', 'audio/wav');
 });
 
 app.get('/game.js', function(req, res){
-    serveFile(req, res, 'game.js', {'Content-Type': 'text/javascript'});
+    serveFile(req, res, 'game.js', 'text/javascript');
 });
 
 
@@ -101,15 +99,20 @@ function terminator(sig) {
 process.on('exit', function() { terminator(); });
 
 ['SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT', 'SIGBUS',
- 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGPIPE', 'SIGTERM'
+ 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGTERM'
 ].forEach(function(element, index, array) {
     process.on(element, function() { terminator(element); });
 });
 
+//  And start the app on that interface (and port).
+var ioserver = server.listen(port, ipaddr, function() {
+   console.log('%s: Node server started on %s:%d ...', Date(Date.now() ),
+               ipaddr, port);
+});
 
 (function() {
    var blinky, counter, ghosts, io, pacman, pinky, mongo, murl, dbconn,
-       socket, pacmanController, lastUpdateTimestamp;
+       iosocket, pacmanController, lastUpdateTimestamp;
    pacmanController = false;
    io = require('socket.io');
    mongo = require('mongodb');
@@ -125,12 +128,13 @@ process.on('exit', function() { terminator(); });
       });
       dbconn = conn;
    });
-   socket = io.listen(app);
-   socket.configure(function(){
-      socket.set("transports", ["websocket", "xhr-polling"]);
-      socket.set("polling duration", 30);
-      // socket.set("log level", 3);
-      socket.set("log level", 1);
+   iosocket = io.listen(ioserver);
+   var socket = iosocket.sockets;
+   iosocket.configure(function(){
+      iosocket.set("transports", ["websocket", "xhr-polling"]);
+      iosocket.set("polling duration", 30);
+      // iosocket.set("log level", 3);
+      iosocket.set("log level", 1);
    });
    pacman = { type: 'location', x: 450, y: 150, sprite: 'pacman' };
    blinky = { x: 10, y: 60 };
@@ -200,7 +204,8 @@ process.on('exit', function() { terminator(); });
                   lastUpdateTimestamp = new Date().getTime();
                }
                dbconn.collection('pacman').save({ _id: message.ghost,
-                        data : { x: message.x, y: message.y }});
+                        data : { x: message.x, y: message.y }},
+                                 function(err) { });
                if (pacmanController == false) {
                   console.log("%s: assigning pacman", Date(Date.now() ));
                   var pmsg = { type: 'pacman', name: 'pacman' };
@@ -227,7 +232,8 @@ process.on('exit', function() { terminator(); });
             ghosts.push(ghost);
             console.log('%s: resetting %s', Date(Date.now() ), ghost);
             dbconn.collection('pacman').save({ _id: ghost,
-                                              data : { x: -100, y: -100 }});
+                                              data : { x: -100, y: -100 }},
+                                             function(err) { });
             var msg = { type: 'location', sprite: ghost, x: -100, y: -100 };
             return client.broadcast.emit('pacman-message', msg);
          }
@@ -240,9 +246,4 @@ process.on('exit', function() { terminator(); });
    });
 }).call(this);
 
-//  And start the app on that interface (and port).
-app.listen(port, ipaddr, function() {
-   console.log('%s: Node server started on %s:%d ...', Date(Date.now() ),
-               ipaddr, port);
-});
 
