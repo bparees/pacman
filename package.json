@@ -25,6 +25,8 @@
   },
 
   "dependencies": {
+    "express": "*",
+    "mongodb": "*",
     "socket.io": "*"
   },
   "devDependencies": {},
