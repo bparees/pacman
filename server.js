@@ -130,12 +130,6 @@ var ioserver = server.listen(port, ipaddr, function() {
    });
    iosocket = io.listen(ioserver);
    var socket = iosocket.sockets;
-   iosocket.configure(function(){
-      iosocket.set("transports", ["websocket", "xhr-polling"]);
-      iosocket.set("polling duration", 30);
-      // iosocket.set("log level", 3);
-      iosocket.set("log level", 1);
-   });
    pacman = { type: 'location', x: 450, y: 150, sprite: 'pacman' };
    blinky = { x: 10, y: 60 };
    pinky = { x: 10, y: 30 };

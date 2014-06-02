@@ -25,9 +25,9 @@ Create a namespace, if you haven't already do so
 
     rhc domain create -n <yournamespace>
 
-Create a nodejs-0.6 application (you can name it anything via -a)
+Create a nodejs-0.10 application (you can name it anything via -a)
 
-    rhc app create -a pacman -t nodejs-0.6
+    rhc app create -a pacman -t nodejs-0.10
 
 Add MongoDB support to your application
 
